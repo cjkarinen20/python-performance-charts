@@ -2,12 +2,42 @@ import threading
 from scapy.all import ICMP, IP, sr1, sendp, Ether
 import time
 import statistics
+import matplotlib.pyplot as plt
 
 # Global variables to hold measurement results
 latency_results = []
 packet_loss_count = 0
 total_packets_sent = 0
 
+# Function to plot results
+def plot_results():
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize = (10, 15))
+    fig.suptitle('Network Performance Metrics')
+    
+    ax1.plot(latency_results, marker = 'o')
+    ax1.set_title('Latency Over Time')
+    ax1.set_xlabel('Ping Attempt')
+    ax1.set_ylabel('Latency (ms)')
+    ax1.grid(True)
+    
+    # Plot packet loss
+    ax2.bar(['Packet Loss', 'Packets Received'], [packet_loss_count, len(latency_results)], color = ['red', 'green'])
+    ax2.set_title('Packet Loss')
+    ax2.set_ylabel('Number of Packets')
+    ax2.grid(True)
+    
+    if total_packets_sent > 0:
+        bandwidth = total_packets_sent * 1000 * 8 / 5 /1024 # Kbps
+        ax3.bar(['Estimated Bandwidth'])
+        ax3.set_ylabel('Bandwidth (Kbps)')
+        ax3.grid(True)
+    else:
+        ax3.axis('off')
+    
+    plt.tight_layout(rect = [0, 0.03, 1, 0.95])
+    plt.show()
+    
+    
 def measure_latency(target_ip, count = 5):
     global latency_results
     for _ in range(count):
@@ -37,8 +67,8 @@ def measure_bandwidth(target_ip, size = 1000, duration = 5):
 def print_results():
     if latency_results:
         print(f"Average Latency: {statistics.mean(latency_results):.2f} ms")
-        print(f"Average Latency: {min(latency_results):.2f} ms")
-        print(f"Average Latency: {max(latency_results):.2f} ms")
+        print(f"Min Latency: {min(latency_results):.2f} ms")
+        print(f"Max Latency: {max(latency_results):.2f} ms")
     print(f"Packet Loss: {(packet_loss_count / (len(latency_results) + packet_loss_count) * 100):.2f}%")
     if total_packets_sent > 0:
         print(f"Estimated Bandwidth: {total_packets_sent * 1000 * 8 / 5 / 1024:.2f} Kbps")
@@ -56,7 +86,8 @@ def main(target_ip):
     for thread in threads:
         thread.join()
         
-    print_results
+    print_results()
+    plot_results()
 
 if __name__ == "__main__":
     target_ip = "8.8.8.8"
