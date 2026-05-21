@@ -35,10 +35,28 @@ def measure_bandwidth(target_ip, size = 1000, duration = 5):
     total_packets_sent = packets_sent
 
 def print_results():
-    pass
-
+    if latency_results:
+        print(f"Average Latency: {statistics.mean(latency_results):.2f} ms")
+        print(f"Average Latency: {min(latency_results):.2f} ms")
+        print(f"Average Latency: {max(latency_results):.2f} ms")
+    print(f"Packet Loss: {(packet_loss_count / (len(latency_results) + packet_loss_count) * 100):.2f}%")
+    if total_packets_sent > 0:
+        print(f"Estimated Bandwidth: {total_packets_sent * 1000 * 8 / 5 / 1024:.2f} Kbps")
+        
 def main(target_ip):
-    pass
+    threads = []
+    threads.append(threading.Thread(target = measure_latency, args = (target_ip,)))
+    threads.append(threading.Thread(target = measure_bandwidth, args = (target_ip,)))
+
+    # Start all threads
+    for thread in threads:
+        thread.start()
+    
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+        
+    print_results
 
 if __name__ == "__main__":
     target_ip = "8.8.8.8"
