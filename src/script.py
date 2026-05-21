@@ -23,8 +23,16 @@ def measure_latency(target_ip, count = 5):
             
         time.sleep(1) # Wait for a second before the next ping
 
+# Measure bandwidth by sending packets and measuring the return rate
 def measure_bandwidth(target_ip, size = 1000, duration = 5):
-    pass
+    start_time = time.time()
+    packets_sent = 0
+    while time.time() - start_time < duration:
+        sendp(Ether() / IP(dst = target_ip) / ('X' * size), verbose = 0)
+        packets_sent += 1
+        time.sleep(0.1) # Send 10 packets per second
+    global total_packets_sent
+    total_packets_sent = packets_sent
 
 def print_results():
     pass
